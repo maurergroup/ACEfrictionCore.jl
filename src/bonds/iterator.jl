@@ -1,17 +1,21 @@
-using JuLIP, StaticArrays, LinearAlgebra
+using StaticArrays, LinearAlgebra
+# using JuLIP
 import ACEfrictionCore: State, filter 
-using JuLIP.Potentials: neigsz
-using JuLIP: Atoms
+# using JuLIP.Potentials: neigsz
+# using JuLIP: Atoms
 # using ACEfrictionCore: BondEnvelope, filter, State, CylindricalBondEnvelope
+import AtomsBase
+using Unitful
+using NeighbourLists
 import ACEfrictionCore.ACEbonds.BondCutoffs: env_cutoff
 import ACEfrictionCore.ACEbonds.BondCutoffs: AbstractBondCutoff, env_filter, EllipsoidCutoff
 
 _msort(z1,z2) = (z1<=z2 ? (z1,z2) : (z2,z1)) #TODO: this is hack. Need to either not use it here or define it once across all packages.
 #env_cutoff(cutoff::EllipsoidCutoff) = max(cutoff.rcutbond*.5 + cutoff.zcutenv, sqrt((cutoff.rcutbond*.5)^2+ cutoff.rcutenv^2))
-env_cutoff(cutoffs::Dict{Tuple{AtomicNumber,AtomicNumber},CUTOFF}) where {CUTOFF<:AbstractBondCutoff} = maximum(env_cutoff(c) for c in values(cutoffs))
+env_cutoff(cutoffs::Dict{Tuple{Int,Int},CUTOFF}) where {CUTOFF<:AbstractBondCutoff} = maximum(env_cutoff(c) for c in values(cutoffs))
 
 
-bonds(at::Atoms, env::AbstractBondCutoff, args...) = 
+bonds(at::AtomsBase.FlexibleSystem, env::AbstractBondCutoff, args...) = 
          bonds( at, env.rcutbond, env_cutoff(env), 
                        (r, z) -> env_filter(r, z, env), args...)
 
@@ -35,9 +39,9 @@ end
 * `rcutenv`: include all bond environment atoms k such that `|rk - mid| <= rcutenv` 
 * `filter` : `filter(X) == true` if particle `X` is to be included; `false` if to be discarded from the environment
 """
-function bonds(at::Atoms, rcutbond, rcutenv, filter) 
-   nlist_bond = neighbourlist(at, rcutbond; recompute=true, storelist=false) 
-   nlist_env = neighbourlist(at, rcutenv; recompute=true, storelist=false)
+function bonds(at::AtomsBase.FlexibleSystem, rcutbond, rcutenv, filter) 
+   nlist_bond = neighbour_list(at, rcutbond) 
+   nlist_env = neighbour_list(at, rcutenv)
    return BondsIterator(at, nlist_bond, nlist_env, filter)
 end
 
@@ -79,16 +83,36 @@ function Base.iterate(iter::BondsIterator, state=(1,0))
    return (i, j, rrij, Js_e, Rs_e, Zs_e), (i, q)
 end
 
+# Originally from JuLIP, not sure if useful or inefficient.
+"""
+`neigsz!(tmp, nlist::PairList, at::Atoms, i::Integer) -> j, R Z`
+
+requires a temporary storage array `tmp` with fields
+`tmp.R, tmp.Z`.
+"""
+function neigsz!(tmp, nlist::PairList, at::AtomsBase.FlexibleSystem, i::Integer)
+   j, R = neigs!(tmp.R, nlist, i)
+   Z = tmp.Z
+   for n = 1:length(j)
+      Z[n] = AtomsBase.atomic_number(at, :)[j[n]]
+   end
+   return j, R, (@view Z[1:length(j)])
+end
+
+function neigsz(nlist::PairList, at::AtomsBase.FlexibleSystem, i::Integer)
+   j, R = NeighbourLists.neigs(nlist, i)
+   return j, R, AtomsBase.atomic_number(at, :)[j]
+end
 
 function _get_bond_env(iter::BondsIterator, i, j, rrij)
    # TODO: store temporary arrays 
-   Js_i, Rs_i, Zs_i = neigsz(iter.nlist_env, iter.at, i)
+   Js_i, Rs_i, Zs_i = ACEfrictionCore.ACEbonds.neigsz(iter.nlist_env, iter.at, i)
 
    rri = iter.at.X[i]
    rrmid = rri + 0.5 * rrij
    Js = Int[]; sizehint!(Js,  length(Js_i) ÷ 4)
    Rs = typeof(rrij)[]; sizehint!(Rs,  length(Js_i) ÷ 4)
-   Zs = AtomicNumber[]; sizehint!(Zs,  length(Js_i) ÷ 4)
+   Zs = Int[]; sizehint!(Zs,  length(Js_i) ÷ 4)
 
    ŝ = rrij/norm(rrij) 
    
@@ -150,8 +174,8 @@ Alternatively, indsf can also be of the form of a filter function `atom_filter(i
    in the configuration `at` are to be included in the iterator, and `false`` otherwise. Consequently, the iterator only iterates over bonds between atom pairs
    where both atoms satisfy the filter criterion.
 """
-bonds(at::Atoms, rcutbond, rcutenv, env_filter, subset) = FilteredBondsIterator(at, rcutbond, rcutenv, env_filter, subset)
-bonds(at::Atoms, cutoff::AbstractBondCutoff, filter=(_,_)->true) = FilteredBondsIterator( at, cutoff.rcutbond, 
+bonds(at::AtomsBase.FlexibleSystem, rcutbond, rcutenv, env_filter, subset) = FilteredBondsIterator(at, rcutbond, rcutenv, env_filter, subset)
+bonds(at::AtomsBase.FlexibleSystem, cutoff::AbstractBondCutoff, filter=(_,_)->true) = FilteredBondsIterator( at, cutoff.rcutbond, 
                                                                    env_cutoff(cutoff) ,
                                                                   (r, z) -> env_filter(r, z, cutoff),  filter )
 
@@ -160,13 +184,13 @@ bonds(at::Atoms, cutoff::AbstractBondCutoff, filter=(_,_)->true) = FilteredBonds
 * `rcutenv`: include all bond environment atoms k such that `|rk - mid| <= rcutenv` 
 * `env_filter` : `env_filter(X) == true` if particle `X` is to be included; `false` if to be discarded from the environment
 """
-function FilteredBondsIterator(at::Atoms, rcutbond::Real, rcutenv::Real, env_filter, subset::Array{<:Int}) 
-   nlist_bond = neighbourlist(at, rcutbond; recompute=true, storelist=false) 
-   nlist_env = neighbourlist(at, rcutenv; recompute=true, storelist=false)
+function FilteredBondsIterator(at::AtomsBase.FlexibleSystem, rcutbond::Real, rcutenv::Real, env_filter, subset::Array{<:Int}) 
+   nlist_bond = NeighbourLists.neighbour_list(at, rcutbond) 
+   nlist_env = NeighbourLists.neighbour_list(at, rcutenv)
    return FilteredBondsIterator(at, nlist_bond, nlist_env, env_filter, subset)
 end
 
-function FilteredBondsIterator(at::Atoms, rcutbond::Real, rcutenv::Real, env_filter, filter) 
+function FilteredBondsIterator(at::AtomsBase.FlexibleSystem, rcutbond::Real, rcutenv::Real, env_filter, filter) 
    subset = findall(i->filter(i,at), 1:length(at) )
     #@show inds
    return FilteredBondsIterator(at, rcutbond, rcutenv, env_filter, subset) 
@@ -236,7 +260,7 @@ function _get_bond_env(iter::FilteredBondsIterator, i, j, rrij)
    rrmid = rri + 0.5 * rrij
    Js = Int[]; sizehint!(Js,  length(Js_i) ÷ 4)
    Rs = typeof(rrij)[]; sizehint!(Rs,  length(Js_i) ÷ 4)
-   Zs = AtomicNumber[]; sizehint!(Zs,  length(Js_i) ÷ 4)
+   Zs = Int[]; sizehint!(Zs,  length(Js_i) ÷ 4)
 
    ŝ = rrij/norm(rrij) 
    
@@ -290,13 +314,13 @@ Alternatively, indsf can also be of the form of a filter function `atom_filter(i
    in the configuration `at` are to be included in the iterator, and `false`` otherwise. Consequently, the iterator only iterates over bonds between atom pairs
    where both atoms satisfy the filter criterion.
 """
-function bonds(at::Atoms, cutoffs::Dict{Tuple{AtomicNumber,AtomicNumber},CUTOFF}, subset::Array{<:Int}) where {CUTOFF<:AbstractBondCutoff}
+function bonds(at::AtomsBase.FlexibleSystem, cutoffs::Dict{Tuple{Int,Int},CUTOFF}, subset::Array{<:Int}) where {CUTOFF<:AbstractBondCutoff}
    rcutbond =  maximum(cutoff.rcutbond for cutoff in values(cutoffs))
    rcutenv = env_cutoff(cutoffs)
    return FilteredBondsIteratorVarCutoff(at, rcutbond, rcutenv,subset, cutoffs)
 end
 
-function bonds(at::Atoms, cutoffs::Dict{Tuple{AtomicNumber,AtomicNumber},CUTOFF}, filter= _->true) where {CUTOFF<:AbstractBondCutoff}
+function bonds(at::AtomsBase.FlexibleSystem, cutoffs::Dict{Tuple{Int,Int},CUTOFF}, filter= _->true) where {CUTOFF<:AbstractBondCutoff}
    subset = findall(i->filter(i,at), 1:length(at) )
    return bonds(at, cutoffs, subset) 
 end
@@ -309,13 +333,13 @@ end
 * `rcutenv`: include all bond environment atoms k such that `|rk - mid| <= rcutenv` 
 * `env_filter` : `env_filter(X) == true` if particle `X` is to be included; `false` if to be discarded from the environment
 """
-function FilteredBondsIteratorVarCutoff(at::Atoms, rcutbond::Real, rcutenv::Real, subset::Array{<:Int}, cutoffs) 
-   nlist_bond = neighbourlist(at, rcutbond; recompute=true, storelist=false) 
-   nlist_env = neighbourlist(at, rcutenv; recompute=true, storelist=false)
+function FilteredBondsIteratorVarCutoff(at::AtomsBase.FlexibleSystem, rcutbond::Real, rcutenv::Real, subset::Array{<:Int}, cutoffs) 
+   nlist_bond = NeighbourLists.neighbour_list(at, rcutbond) 
+   nlist_env = NeighbourLists.neighbour_list(at, rcutenv)
    return FilteredBondsIteratorVarCutoff(at, nlist_bond, nlist_env, subset, cutoffs)
 end
 
-function FilteredBondsIteratorVarCutoff(at::Atoms, rcutbond::Real, rcutenv::Real, env_filter, filter) 
+function FilteredBondsIteratorVarCutoff(at::AtomsBase.FlexibleSystem, rcutbond::Real, rcutenv::Real, env_filter, filter) 
    subset = findall(i->filter(i,at), 1:length(at) )
     #@show inds
    return FilteredBondsIteratorVarCutoff(at, rcutbond, rcutenv, env_filter, subset) 
@@ -385,7 +409,7 @@ function _get_bond_env(iter::FilteredBondsIteratorVarCutoff, i, j, rrij)
    rrmid = rri + 0.5 * rrij
    Js = Int[]; sizehint!(Js,  length(Js_i) ÷ 4)
    Rs = typeof(rrij)[]; sizehint!(Rs,  length(Js_i) ÷ 4)
-   Zs = AtomicNumber[]; sizehint!(Zs,  length(Js_i) ÷ 4)
+   Zs = Int[]; sizehint!(Zs,  length(Js_i) ÷ 4)
 
    ŝ = rrij/norm(rrij) 
    
