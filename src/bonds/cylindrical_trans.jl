@@ -66,7 +66,7 @@ cylindrical coordinates (r, θ, z) and species mu, with origin at `rr0/2`.
 """
 function eucl2cyl(rrij::SVector, Zi, Zj, 
                   Rs::AbstractVector{<: SVector}, 
-                  Zs::AbstractVector{<: AtomicNumber})
+                  Zs::AbstractVector{<: Int})
    @assert length(Rs) == length(Zs)
    H = housholderreflection(rrij)
    rij = norm(rrij)
@@ -82,7 +82,7 @@ function eucl2cyl(rrij::SVector, Zi, Zj,
                     be = :env )
    end
 
-   Y0 = State( mu = AtomicNumber(0), r = 0.0, θ = 0.0, z = 0.0, 
+   Y0 = State( mu = 0, r = 0.0, θ = 0.0, z = 0.0, 
                rij = rij, mui = Zi, muj = Zj, be = :bond )
    cfg = Vector{typeof(Y0)}(undef, length(Rs)+1)
    cfg[1] = Y0
@@ -163,7 +163,7 @@ end
 
 
 # monkey-patch JuLIP since we aren't really updating it anymore 
-Base.isapprox(a::AtomicNumber, b::AtomicNumber) = (a == b)
+#Base.isapprox(a::AtomicNumber, b::AtomicNumber) = (a == b)
 
 """
 For testing only. Generates a cylindrical bond environment, and returns it 
@@ -171,13 +171,13 @@ both in euclidean and cylindrical coordinates. The origin for both is the
 mid-point of the bond. 
 """
 function rand_env(r0cut, rcut, zcut; Nenv = 10, species = [:Al, :Ti])
-   species = AtomicNumber.(species)
+   species = AtomsBase.atomic_number.(AtomsBase.ChemicalSpecies.(species))
    r0 = 1 + rand() 
    rr0 = randn(SVector{3, Float64})
    rr0 = r0 * (rr0/norm(rr0))
    H = housholderreflection(rr0)
    Rs = SVector{3, Float64}[] 
-   Zs = AtomicNumber[] 
+   Zs = Int[] 
    Xcyl = [] 
    Zi, Zj = rand(species), rand(species)
    for _ = 1:Nenv 

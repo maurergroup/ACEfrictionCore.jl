@@ -19,7 +19,7 @@ end
 
 function ellipsoid2sphere(rrij::SVector, Zi, Zj, 
     Rs::AbstractVector{<: SVector}, 
-    Zs::AbstractVector{<: AtomicNumber}, zcutenv::T, rcutenv::T, rcutbond::T) where {T<:Real}
+    Zs::AbstractVector{<: Int}, zcutenv::T, rcutenv::T, rcutbond::T) where {T<:Real}
     @assert length(Rs) == length(Zs)
     G = skewedhousholderreflection(rrij,zcutenv, rcutenv)
 
@@ -27,7 +27,7 @@ function ellipsoid2sphere(rrij::SVector, Zi, Zj,
     cfg = Vector{typeof(Y0)}(undef, length(Rs)+1)
     cfg[1] = Y0
     for i = eachindex(Rs)
-        cfg[i+1] = State(rr = G * Rs[i], mube = chemical_symbol(Zs[i]))
+        cfg[i+1] = State(rr = G * Rs[i], mube = AtomsBase.ChemicalSpecies(Zs[i]) |> Symbol)
     end
     return cfg 
 end

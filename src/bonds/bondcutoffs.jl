@@ -5,7 +5,8 @@ module BondCutoffs
 
 import ACEfrictionCore
 import ACEfrictionCore: State, DState
-using JuLIP: AtomicNumber, chemical_symbol
+# using JuLIP: AtomicNumber, chemical_symbol
+import AtomsBase
 using StaticArrays
 using LinearAlgebra: norm, I
 
@@ -69,18 +70,18 @@ env_radius(env::CylindricalCutoff) = sqrt(env.zcutenv^2+env.rcutenv^2)
 
 env_transform(rrij::SVector, Zi, Zj, 
       Rs::AbstractVector{<: SVector}, 
-      Zs::AbstractVector{<: AtomicNumber}, 
+      Zs::AbstractVector{<: Int}, 
       ::CylindricalCutoff)  = eucl2cyl(rrij, Zi, Zj, Rs, Zs)
 
 # rrule_env_transform(rrij::SVector, Zi, Zj, 
 #                 Rs::AbstractVector{<: SVector}, 
-#                 Zs::AbstractVector{<: AtomicNumber}, 
+#                 Zs::AbstractVector{<: Int}, 
 #                 g_cyl::AbstractMatrix{<: DState},
 #                 ::CylindricalCutoff )  = rrule_eucl2cyl(rrij::SVector, Zi, Zj, Rs, Zs, g_cyl)
 
 # rrule_env_transform(rrij::SVector, Zi, Zj, 
 #                 Rs::AbstractVector{<: SVector}, 
-#                 Zs::AbstractVector{<: AtomicNumber}, 
+#                 Zs::AbstractVector{<: Int}, 
 #                 dV_cyl::AbstractVector{<: DState}, 
 #                 ::CylindricalCutoff) = rrule_eucl2cyl(rrij::SVector, Zi, Zj, Rs, Zs, dV_cyl)
 
@@ -101,7 +102,7 @@ env_radius(ec::EllipsoidCutoff) = max(ec.zcutenv, ec.rcutenv)
 
 env_transform(rrij::SVector, Zi, Zj, 
     Rs::AbstractVector{<: SVector}, 
-    Zs::AbstractVector{<: AtomicNumber}, 
+    Zs::AbstractVector{<: Int}, 
     ec::EllipsoidCutoff) = ellipsoid2sphere(rrij, Zi, Zj, 
                             Rs,
                             Zs, 
@@ -110,14 +111,14 @@ env_transform(rrij::SVector, Zi, Zj,
 
 # rrule_env_transform(rrij::SVector, Zi, Zj, 
 #                 Rs::AbstractVector{<: SVector}, 
-#                 Zs::AbstractVector{<: AtomicNumber}, 
+#                 Zs::AbstractVector{<: Int}, 
 #                 g_ell::AbstractMatrix{<: DState},
 #                 ec::EllipsoidCutoff )  = rrule_ellipsoid2sphere(rrij, Zi, Zj, Rs, Zs, g_ell, 
 #                                             ec.zcutenv, ec.rcutenv, ec.rcutbond)
 
 # rrule_env_transform(rrij::SVector, Zi, Zj, 
 #                 Rs::AbstractVector{<: SVector}, 
-#                 Zs::AbstractVector{<: AtomicNumber}, 
+#                 Zs::AbstractVector{<: Int}, 
 #                 dV_cyl::AbstractVector{<: DState}, 
 #                 ec::EllipsoidCutoff) = rrule_ellipsoid2sphere(rrij, Zi, Zj, Rs, Zs, dV_cyl,
 #                                             ec.zcutenv, ec.rcutenv, ec.rcutbond)
