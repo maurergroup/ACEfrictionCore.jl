@@ -2,19 +2,23 @@
 import ACEfrictionCore.ACEbonds.BondCutoffs: env_transform, env_filter, AbstractBondCutoff
 
 import ACEfrictionCore: params, nparams, set_params!
+import AtomsBase
+import AtomsCalculators
 
 export params, nparams, set_params!
 # TODO: extend implementation to allow for LinearModels with multiple featuers. 
+abstract type AbstractCalculator end
+abstract type AbstractBasis end
 
 struct ACEBondPotential{TM} <: AbstractCalculator
-   models::Dict{Tuple{AtomicNumber, AtomicNumber}, TM}
+   models::Dict{Tuple{Int, Int}, TM}
    cutoff::AbstractBondCutoff{Float64}
 end
 
 
-struct ACEBondPotentialBasis{TM} <: JuLIP.MLIPs.IPBasis
-   models::Dict{Tuple{AtomicNumber, AtomicNumber}, TM}  # model = basis
-   inds::Dict{Tuple{AtomicNumber, AtomicNumber}, UnitRange{Int}}
+struct ACEBondPotentialBasis{TM} <: AbstractBasis
+   models::Dict{Tuple{Int, Int}, TM}  # model = basis
+   inds::Dict{Tuple{Int, Int}, UnitRange{Int}}
    cutoff::AbstractBondCutoff{Float64}
 end
 
@@ -43,7 +47,7 @@ function set_params!(calc::ACEBondPotential, θ)
    end
 end
 
-function set_params!(calc::ACEBondPotential, zz::Tuple{AtomicNumber,AtomicNumber}, θ)
+function set_params!(calc::ACEBondPotential, zz::Tuple{Int,Int}, θ)
    set_params!(_get_model(calc, zz[1], zz[2]),θ)
 end
 
@@ -55,7 +59,7 @@ Base.length(basis::ACEBondPotentialBasis) =
 
 
 function _get_basisinds(V::ACEBondPotential)
-   inds = Dict{Tuple{AtomicNumber, AtomicNumber}, UnitRange{Int}}()
+   inds = Dict{Tuple{Int, Int}, UnitRange{Int}}()
    zz = sort(collect(keys(V.models)))
    i0 = 0
    for z in zz
@@ -71,26 +75,25 @@ _get_basisinds(V::ACEBondPotentialBasis) = V.inds
 
 # --------------------------------------------------------
 
-import JuLIP: energy
 #, forces, virial 
 import ACEfrictionCore: evaluate #, evaluate_d, grad_config
 
 
 # overload the initiation of the bonds iterator to correctly extract the 
 # right cutoffs. 
-bonds(at::Atoms, calc::ACEBondCalc, args...) = bonds(at, calc.cutoff, args...) 
+bonds(at::AtomsBase.FlexibleSystem, calc::ACEBondCalc, args...) = bonds(at, calc.cutoff, args...) 
 
 
-_get_model(calc::ACEBondCalc, zi, zj) = 
-      calc.models[(min(zi, zj), max(zi,zj))]
+_get_model(calc::ACEBondCalc, zi, zj) = calc.models[(min(zi, zj), max(zi,zj))]
 
-function energy(calc::ACEBondPotential, at::Atoms)
+function AtomsCalculators.potential_energy(at::AtomsBase.FlexibleSystem, calc::ACEBondPotential)
    E = 0.0 
-   for (i, j, rrij, Js, Rs, Zs) in bonds(at, calc)
+   for (i, j, rrij, Js, Rs, Zs) in bonds(at, calc.cutoff)
       # find the right ace model 
-      ace = _get_model(calc, at.Z[i], at.Z[j])
+      ats = AtomsBase.atomic_number(at, :)
+      ace = _get_model(calc, ats[i], ats[j])
       # transform the euclidean to cylindrical coordinates
-      env = env_transform(rrij, at.Z[i], at.Z[j], Rs, Zs, calc.cutoff)
+      env = env_transform(rrij, ats[i], ats[j], Rs, Zs, calc.cutoff)
       # evaluate 
       Eij = evaluate(ace, env)
       E += Eij.val
@@ -154,14 +157,15 @@ end
 
 
 
-function energy(basis::ACEBondPotentialBasis, at::Atoms)
+function AtomsCalculators.potential_energy(at::AtomsBase.FlexibleSystem, basis::ACEBondPotentialBasis)
    E = zeros(Float64, length(basis))
    Et = zeros(Float64, length(basis))
-   for (i, j, rrij, Js, Rs, Zs) in bonds(at, basis)
+   ats = AtomsBase.atomic_number(at, :)
+   for (i, j, rrij, Js, Rs, Zs) in bonds(at, basis.cutoff)
       # find the right ace model 
-      ace = _get_model(basis, at.Z[i], at.Z[j])
+      ace = _get_model(basis, ats[i], ats[j])
       # transform the euclidean to cylindrical coordinates
-      env = env_transform(rrij, at.Z[i], at.Z[j], Rs, Zs, basis.cutoff)
+      env = env_transform(rrij, ats[i], ats[j], Rs, Zs, basis.cutoff)
       # evaluate 
       ACEfrictionCore.evaluate!(Et, ace, ACEfrictionCore.ACEConfig(env))
       E += Et 
