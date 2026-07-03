@@ -127,13 +127,13 @@ include("ellipsoid_trans.jl") # contains rrules for ellipsoid2sphere and other a
 
 function ACEfrictionCore.write_dict(cutoff::EllipsoidCutoff{T}) where {T}
     Dict("__id__" => "ACEbonds_EllipsoidCutoff",
-          "rcutbond" => cutoff.rcutbond,
-          "rcutenv" => cutoff.rcutenv,
-          "zcutenv" => cutoff.zcutenv,
-             "T" => T)         
-end 
+        "rcutbond" => cutoff.rcutbond,
+        "rcutenv" => cutoff.rcutenv,
+        "zcutenv" => cutoff.zcutenv,
+        "T" => T)
+end
 
-function ACEfrictionCore.read_dict(::Val{:ACEbonds_EllipsoidCutoff}, D::Dict)
+function ACEfrictionCore.read_dict(::Val{:ACEbonds_EllipsoidCutoff}, D::AbstractDict)
     rcutbond = D["rcutbond"]
     rcutenv = D["rcutenv"]
     zcutenv = D["zcutenv"]

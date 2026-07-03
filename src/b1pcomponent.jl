@@ -157,23 +157,23 @@ end
 
 
 function write_dict(basis::B1pComponent)
-   ISYMS = _idxsyms(basis)
-   return Dict("__id__" => "ACEfrictionCore_B1pComponent", 
-                 "syms" => [ string.(ISYMS) ...], 
-                "basis" => write_dict(basis.basis), 
-                 "fval" => write_dict(basis.fval), 
-                 "spec" => convert.(Dict, basis.spec), 
-              "degrees" => basis.degrees, 
-                "label" => basis.label )
+    ISYMS = _idxsyms(basis)
+    return Dict("__id__" => "ACEfrictionCore_B1pComponent",
+        "syms" => [string.(ISYMS)...],
+        "basis" => write_dict(basis.basis),
+        "fval" => write_dict(basis.fval),
+        "spec" => convert.(Dict, basis.spec),
+        "degrees" => basis.degrees,
+        "label" => basis.label)
 end
 
 
-function read_dict(::Val{:ACEfrictionCore_B1pComponent}, D::Dict)
-   basis = read_dict(D["basis"])
-   ISYMS = tuple(Symbol.(D["syms"])...)
-   spec = NamedTuple{ISYMS}.(namedtuple.(D["spec"]))
-   fval = read_dict(D["fval"])
-   return B1pComponent(basis, fval, spec, Int.(D["degrees"]), D["label"])
+function read_dict(::Val{:ACEfrictionCore_B1pComponent}, D::AbstractDict)
+    basis = read_dict(D["basis"])
+    ISYMS = tuple(Symbol.(D["syms"])...)
+    spec = NamedTuple{ISYMS}.(namedtuple.(D["spec"]))
+    fval = read_dict(D["fval"])
+    return B1pComponent(basis, fval, spec, Int.(D["degrees"]), D["label"])
 end
 
 

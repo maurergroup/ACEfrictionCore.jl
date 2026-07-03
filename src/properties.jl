@@ -103,25 +103,25 @@ Base.convert(::Type{Invariant{T}}, x::Number) where {T} = Invariant(convert(T, x
 
 *(φ1::Invariant, φ2::Invariant) = Invariant(φ1.val * φ2.val)
 
-write_dict(φ::Invariant{T})  where {T} =
-   Dict("__id__" => "ACEfrictionCore_Invariant",
+write_dict(φ::Invariant{T}) where {T} =
+    Dict("__id__" => "ACEfrictionCore_Invariant",
         "val" => φ.val,
-        "T" => write_dict(T) )
+        "T" => write_dict(T))
 
-read_dict(::Val{:ACEfrictionCore_Invariant}, D::Dict) =
-      Invariant{read_dict(D["T"])}(D["val"])
+read_dict(::Val{:ACEfrictionCore_Invariant}, D::AbstractDict) =
+    Invariant{read_dict(D["T"])}(D["val"])
 
 
-function filter(φ::Invariant, grp::O3, b::Array) 
-   if length(b) <= 1
-      return true 
-   end 
-   suml = sum( getl(grp, bi) for bi in b )
-   if haskey(b[1], msym(grp))  # depends on context whether m come along?
-      summ = sum( getm(grp, bi) for bi in b )
-      return iseven(suml) && iszero(summ)
-   end
-   return iseven(suml)   
+function filter(φ::Invariant, grp::O3, b::Array)
+    if length(b) <= 1
+        return true
+    end
+    suml = sum(getl(grp, bi) for bi in b)
+    if haskey(b[1], msym(grp))  # depends on context whether m come along?
+        summ = sum(getm(grp, bi) for bi in b)
+        return iseven(suml) && iszero(summ)
+    end
+    return iseven(suml)
 end
 
 filter(φ::Invariant, grp::O3O3, b::Array) = 
@@ -340,17 +340,17 @@ function coco_init(phi::SymmetricEuclideanMatrix{CT}, l, m, μ, T, A) where {CT<
 end
 
 function ACEfrictionCore.write_dict(φ::SymmetricEuclideanMatrix{T}) where {T}
-   Dict("__id__" => "ACEfrictionCore_SymmetricEuclideanMatrix",
-         "valr" => write_dict(real.(Matrix(φ.val))),
-         "vali" => write_dict(imag.(Matrix(φ.val))),
-            "T" => write_dict(T))         
-end 
+    Dict("__id__" => "ACEfrictionCore_SymmetricEuclideanMatrix",
+        "valr" => write_dict(real.(Matrix(φ.val))),
+        "vali" => write_dict(imag.(Matrix(φ.val))),
+        "T" => write_dict(T))
+end
 
-function ACEfrictionCore.read_dict(::Val{:ACEfrictionCore_SymmetricEuclideanMatrix}, D::Dict)
-   T = read_dict(D["T"])
-   valr = SMatrix{3, 3, T, 9}(read_dict(D["valr"]))
-   vali = SMatrix{3, 3, T, 9}(read_dict(D["vali"]))
-   return SymmetricEuclideanMatrix{T}(valr + im * vali)
+function ACEfrictionCore.read_dict(::Val{:ACEfrictionCore_SymmetricEuclideanMatrix}, D::AbstractDict)
+    T = read_dict(D["T"])
+    valr = SMatrix{3,3,T,9}(read_dict(D["valr"]))
+    vali = SMatrix{3,3,T,9}(read_dict(D["vali"]))
+    return SymmetricEuclideanMatrix{T}(valr + im * vali)
 end
 
 # Equivariant 3 x 3 anti-symmetric Euclidean Matrix 
@@ -370,8 +370,8 @@ end
 #    Dict("__id__" => "ACEfrictionCore_AntiSymmetricEuclideanMatrix",
 #          "valr" => write_dict(real.(Matrix(φ.val))),
 #          "vali" => write_dict(imag.(Matrix(φ.val))),
-#             "T" => write_dict(T))         
-# end 
+#             "T" => write_dict(T))
+# end
 
 # function ACEfrictionCore.read_dict(::Val{:ACEfrictionCore_AntiSymmetricEuclideanMatrix}, D::Dict)
 #    T = read_dict(D["T"])

@@ -116,18 +116,18 @@ Base.show(io::IO, P::OrthPolyBasis) =
 
 
 write_dict(J::OrthPolyBasis{T}) where {T} = Dict(
-      "__id__" => "ACEfrictionCore_OrthPolyBasis",
-      "T" => write_dict(T),
-      "pr" => J.pr,
-      "tr" => J.tr,
-      "pl" => J.pl,
-      "tl" => J.tl,
-      "A" => J.A,
-      "B" => J.B,
-      "C" => J.C, 
-      "tdf" => J.tdf, 
-      "ww" => J.ww
-   )
+    "__id__" => "ACEfrictionCore_OrthPolyBasis",
+    "T" => write_dict(T),
+    "pr" => J.pr,
+    "tr" => J.tr,
+    "pl" => J.pl,
+    "tl" => J.tl,
+    "A" => J.A,
+    "B" => J.B,
+    "C" => J.C,
+    "tdf" => J.tdf,
+    "ww" => J.ww
+)
 
 OrthPolyBasis(D::Dict, T=read_dict(D["T"])) =
    OrthPolyBasis(
@@ -136,7 +136,7 @@ OrthPolyBasis(D::Dict, T=read_dict(D["T"])) =
       T.(D["tdf"]), T.(D["ww"])
    )
 
-read_dict(::Val{:ACEfrictionCore_OrthPolyBasis}, D::Dict) = OrthPolyBasis(D)
+read_dict(::Val{:ACEfrictionCore_OrthPolyBasis}, D::AbstractDict) = OrthPolyBasis(D)
 
 # rand applied to a J will return a random transformed distance drawn from
 # the measure w.r.t. which the polynomials were constructed.

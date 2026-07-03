@@ -40,13 +40,12 @@ import Base: ==
       all( F1==F2 for (F1, F2) in zip(ch1.F, ch2.F) )
 
 write_dict(chain::SChain) = Dict(
-            "__id__" => "ACEfrictionCore_SChain", 
-            "F" => write_dict.(chain.F)
-         )
+    "__id__" => "ACEfrictionCore_SChain",
+    "F" => write_dict.(chain.F)
+)
 
-read_dict(::Val{:ACEfrictionCore_SChain}, D::Dict) = 
-         SChain(tuple( read_dict.(D["F"])... ))
-
+read_dict(::Val{:ACEfrictionCore_SChain}, D::AbstractDict) =
+    SChain(tuple(read_dict.(D["F"])...))
 
 ## ALTERNATIVE CHAIN IMPLEMENTATION - LINKS 
 

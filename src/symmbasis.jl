@@ -42,23 +42,23 @@ Base.length(basis::SymmetricBasis{PIB, PROP}) where {PIB, PROP} =
 
 # -------- FIO
 
-==(B1::SymmetricBasis, B2::SymmetricBasis) = 
-      ( (B1.pibasis == B2.pibasis) && 
-        (B1.A2Bmap == B2.A2Bmap) && 
-        (B1.real == B2.real) )
+==(B1::SymmetricBasis, B2::SymmetricBasis) =
+    ((B1.pibasis == B2.pibasis) &&
+     (B1.A2Bmap == B2.A2Bmap) &&
+     (B1.real == B2.real))
 
-write_dict(B::SymmetricBasis{PIB, PROP}) where {PIB, PROP} =
-      Dict( "__id__" => "ACEfrictionCore_SymmetricBasis",
-            "pibasis" => write_dict(B.pibasis),
-            "A2Bmap" => write_dict(B.A2Bmap),
-            "symgrp" => write_dict(B.symgrp), 
-            "isreal" => (B.real == Base.real) )
+write_dict(B::SymmetricBasis{PIB,PROP}) where {PIB,PROP} =
+    Dict("__id__" => "ACEfrictionCore_SymmetricBasis",
+        "pibasis" => write_dict(B.pibasis),
+        "A2Bmap" => write_dict(B.A2Bmap),
+        "symgrp" => write_dict(B.symgrp),
+        "isreal" => (B.real == Base.real))
 
-read_dict(::Val{:ACEfrictionCore_SymmetricBasis}, D::Dict) =
-      SymmetricBasis(read_dict(D["pibasis"]),
-                     read_dict(D["A2Bmap"]),
-                     read_dict(D["symgrp"]), 
-                     (D["isreal"] ? Base.real : Base.identity) )
+read_dict(::Val{:ACEfrictionCore_SymmetricBasis}, D::AbstractDict) =
+    SymmetricBasis(read_dict(D["pibasis"]),
+        read_dict(D["A2Bmap"]),
+        read_dict(D["symgrp"]),
+        (D["isreal"] ? Base.real : Base.identity))
 # --------
 
 SymmetricBasis(φ::AbstractProperty, 

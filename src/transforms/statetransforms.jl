@@ -52,10 +52,10 @@ end
 get_symbols(::GetNorm{VSYM}) where {VSYM} = (VSYM,)
 
 
-write_dict(fval::StaticGet) = Dict("__id__" => "ACEfrictionCore_StaticGet", 
-                                   "expr" => string(typeof(fval)) )
+write_dict(fval::StaticGet) = Dict("__id__" => "ACEfrictionCore_StaticGet",
+    "expr" => string(typeof(fval)))
 
-read_dict(::Val{:ACEfrictionCore_StaticGet}, D::Dict) = eval( Meta.parse(D["expr"]) )()
+read_dict(::Val{:ACEfrictionCore_StaticGet}, D::AbstractDict) = eval(Meta.parse(D["expr"]))()
 
 
 # rrule_evaluate! function removed - derivative functionality has been removed

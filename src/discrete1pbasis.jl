@@ -39,16 +39,15 @@ function val2i(list::SList, val)
    error("val = $val not found in this list")
 end
 
-write_dict(list::SList{N,T}) where {N, T} = 
-      Dict( "__id__" => "ACEfrictionCore_SList", 
-                 "T" => write_dict(T),
-              "list" => list.list )
+write_dict(list::SList{N,T}) where {N,T} =
+    Dict("__id__" => "ACEfrictionCore_SList",
+        "T" => write_dict(T),
 
-function read_dict(::Val{:ACEfrictionCore_SList}, D::Dict) 
-   list = D["list"]
-   T = read_dict(D["T"])
-   svector = SVector{length(list), T}((T.(list))...)
-   return SList(svector)
+function read_dict(::Val{:ACEfrictionCore_SList}, D::AbstractDict)
+    list = D["list"]
+    T = read_dict(D["T"])
+    svector = SVector{length(list),T}((T.(list))...)
+    return SList(svector)
 end
 
 
@@ -131,14 +130,14 @@ end
 get_spec(basis::Categorical1pBasis) = [ get_spec(basis, i) for i = 1:length(basis) ]
 
 
-write_dict(B::Categorical1pBasis) = 
-      Dict( "__id__" => "ACEfrictionCore_Categorical1pBasis", 
-            "categories" => write_dict(B.categories), 
-            "VSYM" => String(_varsym(B)), 
-            "ISYM" => String(_isym(B)), 
-            "label" => B.label)
+write_dict(B::Categorical1pBasis) =
+    Dict("__id__" => "ACEfrictionCore_Categorical1pBasis",
+        "categories" => write_dict(B.categories),
+        "VSYM" => String(_varsym(B)),
+        "ISYM" => String(_isym(B)),
+        "label" => B.label)
 
-read_dict(::Val{:ACEfrictionCore_Categorical1pBasis}, D::Dict)  = 
-   Categorical1pBasis( read_dict(D["categories"]), 
-                  Symbol(D["VSYM"]), Symbol(D["ISYM"]), 
-                  D["label"] )
+read_dict(::Val{:ACEfrictionCore_Categorical1pBasis}, D::AbstractDict) =
+    Categorical1pBasis(read_dict(D["categories"]),
+        Symbol(D["VSYM"]), Symbol(D["ISYM"]),
+        D["label"])

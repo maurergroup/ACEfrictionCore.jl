@@ -92,11 +92,11 @@ function read_dict(::Val{:ACEfrictionCore_LinearACEModel}, D::Dict)
    return LinearACEModel(basis, c, evaluator)
 end
 
-write_dict(ev::NaiveEvaluator) = 
-      Dict("__id__" => "ACEfrictionCore_NaiveEvaluator" )
+write_dict(ev::NaiveEvaluator) =
+    Dict("__id__" => "ACEfrictionCore_NaiveEvaluator")
 
-read_dict(::Val{:ACEfrictionCore_NaiveEvaluator}, D::Dict, args...) = 
-      NaiveEvaluator()
+read_dict(::Val{:ACEfrictionCore_NaiveEvaluator}, D::AbstractDict, args...) =
+    NaiveEvaluator()
 
 
 

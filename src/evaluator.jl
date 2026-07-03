@@ -19,9 +19,9 @@ end
 
 # ----------- FIO 
 
-write_dict(ev::ProductEvaluator) = Dict( "__id__" => "ACEfrictionCore_ProductEvaluator" )
+write_dict(ev::ProductEvaluator) = Dict("__id__" => "ACEfrictionCore_ProductEvaluator")
 
-read_dict(::Val{:ACEfrictionCore_ProductEvaluator}, D::Dict, basis, c) = ProductEvaluator(basis, c)
+read_dict(::Val{:ACEfrictionCore_ProductEvaluator}, D::AbstractDict, basis, c) = ProductEvaluator(basis, c)
 
 # ------------------------------------------------------------
 #   Initialisation and Parameter manipulation code

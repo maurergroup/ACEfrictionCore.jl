@@ -255,12 +255,12 @@ import Base.==
 		(B1.alp == B2.alp) && (typeof(B1) == typeof(B2))
 
 write_dict(SH::SHBasis{T}) where {T} =
-		Dict("__id__" => "ACEfrictionCore_SHBasis",
-			  "T" => write_dict(T),
-			  "maxL" => maxL(SH))
+    Dict("__id__" => "ACEfrictionCore_SHBasis",
+        "T" => write_dict(T),
+        "maxL" => maxL(SH))
 
-read_dict(::Val{:ACEfrictionCore_SHBasis}, D::Dict) =
-		SHBasis(D["maxL"], read_dict(D["T"]))
+read_dict(::Val{:ACEfrictionCore_SHBasis}, D::AbstractDict) =
+    SHBasis(D["maxL"], read_dict(D["T"]))
 
 
 Base.length(S::AbstractSHBasis) = sizeY(maxL(S))

@@ -26,14 +26,13 @@ lambda(str::String) = λ(str)
 evaluate(t::Lambda, x) = t.ll.λ(x)
 
 
-write_dict(t::Lambda)  = Dict(
-         "__id__" => "ACEfrictionCore_Lambda", 
-         "exstr" => t.exstr
-      )
+write_dict(t::Lambda) = Dict(
+    "__id__" => "ACEfrictionCore_Lambda",
+    "exstr" => t.exstr
+)
 
-read_dict(::Val{:ACEfrictionCore_Lambda}, D::Dict) = λ(D["exstr"])
+read_dict(::Val{:ACEfrictionCore_Lambda}, D::AbstractDict) = λ(D["exstr"])
 
 import Base: ==
 
 ==(F1::Lambda, F2::Lambda) = (F1.exstr == F2.exstr)
-
