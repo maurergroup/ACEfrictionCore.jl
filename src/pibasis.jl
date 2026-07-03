@@ -238,7 +238,7 @@ write_dict(basis::PIBasis) =
         "spec" => write_dict(basis.spec),
         "real" => basis.real == Base.real ? true : false)
 
-read_dict(::Val{:ACEfrictionCore_PIBasis}, D::Dict) =
+read_dict(::Val{:ACEfrictionCore_PIBasis}, D::AbstractDict) =
     PIBasis(read_dict(D["basis1p"]),
         read_dict(D["spec"]),
         D["real"] ? Base.real : Base.identity)
