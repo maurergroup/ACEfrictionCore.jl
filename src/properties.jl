@@ -373,7 +373,7 @@ end
 #             "T" => write_dict(T))
 # end
 
-# function ACEfrictionCore.read_dict(::Val{:ACEfrictionCore_AntiSymmetricEuclideanMatrix}, D::Dict)
+# function ACEfrictionCore.read_dict(::Val{:ACEfrictionCore_AntiSymmetricEuclideanMatrix}, D::AbstractDict)
 #    T = read_dict(D["T"])
 #    valr = SMatrix{3, 3, T, 9}(read_dict(D["valr"]))
 #    vali = SMatrix{3, 3, T, 9}(read_dict(D["vali"]))

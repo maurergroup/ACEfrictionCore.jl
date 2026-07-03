@@ -44,9 +44,9 @@ struct B1pComponent{ISYMS,TT,TB,FVAL}
     spec::Vector{NamedTuple{ISYMS,TT}}
     degrees::Vector{Int}
     label::String
-    meta::Dict{String,Any}
+    meta::AbstractDict{String,Any}
     # ------------ derived fields
-    invspec::Dict{NamedTuple{ISYMS,TT},Int}
+    invspec::AbstractDict{NamedTuple{ISYMS,TT},Int}
     # todo - fields for temporary arrays ...
 end
 
@@ -142,7 +142,7 @@ function degree(b::NamedTuple, basis::B1pComponent)
     return basis.degrees[idx]
 end
 
-function degree(b::NamedTuple, basis::B1pComponent, weight::Dict)
+function degree(b::NamedTuple, basis::B1pComponent, weight::AbstractDict)
     ISYMS = _idxsyms(basis)
     return weight[ISYMS[1]] * degree(b, basis)
 end

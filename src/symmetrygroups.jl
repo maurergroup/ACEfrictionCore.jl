@@ -31,7 +31,7 @@ end
 #            "lsym" => lsym(G),
 #            "msym" => msym(G) )
 
-# read_dict(::Val{:ACEfrictionCore_O3}, D::Dict) =
+# read_dict(::Val{:ACEfrictionCore_O3}, D::AbstractDict) =
 #       O3(Symbol(D["lsym"]), Symbol(D["msym"]))
 
 

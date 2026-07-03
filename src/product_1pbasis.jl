@@ -209,7 +209,7 @@ end
 
 degree(b, basis::Product1pBasis) = sum(degree(b, B) for B in basis.bases)
 
-degree(b::NamedTuple, basis::Product1pBasis, weight::Dict) =
+degree(b::NamedTuple, basis::Product1pBasis, weight::AbstractDict) =
     sum(degree(b, B, weight) for B in basis.bases)
 
 # TODO: this looks like a horrible hack ...

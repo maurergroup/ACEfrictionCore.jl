@@ -129,7 +129,7 @@ write_dict(J::OrthPolyBasis{T}) where {T} = Dict(
     "ww" => J.ww
 )
 
-OrthPolyBasis(D::Dict, T=read_dict(D["T"])) =
+OrthPolyBasis(D::AbstractDict, T=read_dict(D["T"])) =
     OrthPolyBasis(
         D["pl"], D["tl"], D["pr"], D["tr"],
         Vector{T}(D["A"]), Vector{T}(D["B"]), Vector{T}(D["C"]),

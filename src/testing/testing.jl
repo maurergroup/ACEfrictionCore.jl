@@ -22,7 +22,7 @@ export print_tf, test_fio, test_transform
 
 # # ---------- code for consistency tests
 #
-# test_basis(D::Dict) = ACEfrictionCore.Utils.rpi_basis(;
+# test_basis(D::AbstractDict) = ACEfrictionCore.Utils.rpi_basis(;
 #                species = Symbol.(D["species"]), N = D["N"],
 #                maxdeg = D["maxdeg"],
 #                r0 = D["r0"], rcut = D["rcut"],
@@ -63,25 +63,25 @@ export print_tf, test_fio, test_transform
 # import ForwardDiff
 import ACEfrictionCore: evaluate, inv_transform
 
-function test_transform(T, rrange, ntests = 100)
+function test_transform(T, rrange, ntests=100)
 
-   rmin, rmax = extrema(rrange)
-   rr = rmin .+ rand(100) * (rmax-rmin)
-   xx = evaluate.(Ref(T), rr)
-   # check syntactic sugar
-   xx1 = T.(rr)
-   print_tf(@test xx1 == xx)
-   # check inversion
-   rr1 = inv_transform.(Ref(T), xx)
-   print_tf(@test rr1 ≈ rr)
+    rmin, rmax = extrema(rrange)
+    rr = rmin .+ rand(100) * (rmax - rmin)
+    xx = evaluate.(Ref(T), rr)
+    # check syntactic sugar
+    xx1 = T.(rr)
+    print_tf(@test xx1 == xx)
+    # check inversion
+    rr1 = inv_transform.(Ref(T), xx)
+    print_tf(@test rr1 ≈ rr)
 
-   # TODO: check that the transform doesn't allocate
-   @allocated begin
-      x = 0.0;
-      for r in rr
-         x += evaluate(T, r)
-      end
-   end
+    # TODO: check that the transform doesn't allocate
+    @allocated begin
+        x = 0.0
+        for r in rr
+            x += evaluate(T, r)
+        end
+    end
 end
 
 
