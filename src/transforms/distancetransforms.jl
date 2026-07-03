@@ -12,17 +12,17 @@ abstract type DistanceTransform end
 # ----- new transforms implementation 
 import ACEfrictionCore: λ 
 
-@deprecate PolyTransform(p, r0) polytransform(p, r0)
 polytransform(p, r0) = λ("r -> ((1+$r0)/(1+r))^$p")
+@deprecate PolyTransform(p, r0) polytransform(p, r0)
 
-@deprecate IdTransform() idtransform()
 idtransform() = λ("r -> r")
+@deprecate IdTransform() idtransform()
 
-@deprecate MorseTransform(lambda, r0) morsetransform(lambda, r0)
 morsetransform(lambda, r0) = λ("r -> exp(- $lambda * (r / $r0 - 1))")
+@deprecate MorseTransform(lambda, r0) morsetransform(lambda, r0)
 
-@deprecate AgnesiTransform(args...) agnesitransform(args...)
 agnesitransform(r0, p=2, a=(p-1)/(p+1)) = λ("r -> 1 / (1 + $a * (r / $r0)^$p)")
+@deprecate AgnesiTransform(args...) agnesitransform(args...)
 
 
 # ------------------------------------------------------
